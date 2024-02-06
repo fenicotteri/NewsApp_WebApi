@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -10,6 +10,7 @@ using Swashbuckle.AspNetCore.Filters;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Text.Json;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace NewsApp
 {
@@ -20,19 +21,48 @@ namespace NewsApp
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
+            var services = builder.Services;
+            ConfigureServices(builder, services);
+            var app = builder.Build();
 
-            builder.Services.AddControllers();
-            builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+            var webHostEnvironment = app.Environment;
+            Configure(app, webHostEnvironment);
+        }
 
-            builder.Services.AddScoped<IUserRepository, UserRepository>();
-            builder.Services.AddScoped<IRatingRepository, RatingRepository>();
-            builder.Services.AddScoped<IPostRepository, PostRepository>();
-            builder.Services.AddScoped<ITagRepository, TagRepository>();
-            builder.Services.AddScoped<ICommentRepository, CommentRepository>();
+        // Configure the HTTP request pipeline.
+        private static void Configure(WebApplication webApplication, IWebHostEnvironment webHostEnvironment)
+        {
+            if (webHostEnvironment.IsDevelopment())
+            {
+                webApplication.UseSwagger();
+                webApplication.UseSwaggerUI();
+            }
+
+            webApplication.UseHttpsRedirection();
+
+            webApplication.UseAuthentication();
+
+            webApplication.UseAuthorization();
+
+            webApplication.MapControllers();
+
+            webApplication.Run();
+        }
+
+        private static void ConfigureServices(WebApplicationBuilder builder, IServiceCollection serviceCollection)
+        {
+            serviceCollection.AddControllers().AddNewtonsoftJson();
+            serviceCollection.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
+            // сервисы DI
+            serviceCollection.AddScoped<IUserRepository, UserRepository>();
+            serviceCollection.AddScoped<IPostRepository, PostRepository>();
+            serviceCollection.AddScoped<ITagRepository, TagRepository>();
+            serviceCollection.AddScoped<ICommentRepository, CommentRepository>();
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-            builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen(options =>
+            serviceCollection.AddEndpointsApiExplorer();
+            serviceCollection.AddSwaggerGen(options =>
             {
                 options.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
                 {
@@ -45,9 +75,8 @@ namespace NewsApp
                 options.OperationFilter<SecurityRequirementsOperationFilter>();
             });
 
-            
 
-            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            serviceCollection.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {
                     options.TokenValidationParameters = new TokenValidationParameters
@@ -60,31 +89,12 @@ namespace NewsApp
                     };
                 });
 
-            builder.Services.AddDbContext<DataContext>(options =>
+            serviceCollection.AddDbContext<DataContext>(options =>
             {
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
             });
 
-            builder.Services.AddAuthorization();
-            var app = builder.Build();
-
-            // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
-            {
-                app.UseSwagger();
-                app.UseSwaggerUI();
-            }
-
-            app.UseHttpsRedirection();
-
-            app.UseAuthentication();
-
-            app.UseAuthorization();
-
-
-            app.MapControllers();
-
-            app.Run();
+            serviceCollection.AddAuthorization();
         }
     }
 }

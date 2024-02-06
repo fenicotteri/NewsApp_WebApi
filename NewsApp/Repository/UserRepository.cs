@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.EntityFrameworkCore;
 using NewsApp.Data;
 using NewsApp.Interface;
 using NewsApp.Models;
@@ -15,15 +16,6 @@ namespace NewsApp.Repository
 
         public bool CreateUser(User user)
         {
-            var rate = new UserRating()
-            {
-                User = user,
-                UserId = user.Id
-            };
-            rate.UpdatedAt = DateTime.UtcNow;
-            rate.CreatedAt = DateTime.UtcNow;
-
-            _context.Add(rate);
             _context.Add(user);
             return Save();
         }
@@ -52,6 +44,19 @@ namespace NewsApp.Repository
         public bool UserExists(int id)
         {
             return _context.Users.Any(u => u.Id == id);
+        }
+
+        async public Task<bool> SaveAsync()
+        {
+            var save = await _context.SaveChangesAsync();
+            return save > 0 ? true : false;
+        }
+
+        async public Task<bool> UpdateUserPatchAsync(User user, JsonPatchDocument<User> userRequest)
+        {
+            userRequest.ApplyTo(user);
+            return await SaveAsync();
+
         }
     }
 }

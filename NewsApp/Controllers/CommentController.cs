@@ -13,12 +13,15 @@ namespace NewsApp.Controllers
     [ApiController]
     public class CommentController : Controller
     {
+        // Объект CommentRepository - Реализация ICommentRepository
+        // Этот сервис ответственен за выполнение операций с комментариями
         private readonly ICommentRepository _commentRepository;
         private readonly IPostRepository _postRepository;
         private readonly IMapper _mapper;
 
         public CommentController(ICommentRepository commentRepository,IPostRepository postRepository, IMapper mapper)
         {
+            // экземпляры необходимых сервисов
             _commentRepository = commentRepository;
             _postRepository = postRepository;
             _mapper = mapper;

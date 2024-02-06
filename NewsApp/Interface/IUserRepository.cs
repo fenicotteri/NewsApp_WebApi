@@ -1,4 +1,5 @@
-﻿using NewsApp.Models;
+﻿using Microsoft.AspNetCore.JsonPatch;
+using NewsApp.Models;
 
 namespace NewsApp.Interface
 {
@@ -15,6 +16,8 @@ namespace NewsApp.Interface
         public bool Save();
 
         bool UserExists(int id);
+        public Task<bool> SaveAsync();
+        public Task<bool> UpdateUserPatchAsync(User user, JsonPatchDocument<User> userRequest);
 
     }
 }

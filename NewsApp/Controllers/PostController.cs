@@ -1,11 +1,13 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using NewsApp.Dto;
 using NewsApp.Interface;
 using NewsApp.Models;
 using NewsApp.Repository;
 using System.Collections.Generic;
+using System.Drawing.Printing;
 using System.Security.Claims;
 
 namespace NewsApp.Controllers
@@ -15,27 +17,29 @@ namespace NewsApp.Controllers
     public class PostsController : Controller
     {
         private readonly IPostRepository _postRepository;
+        private readonly IUserRepository _userRepository;
         private readonly IMapper _mapper;
 
-        public PostsController(IPostRepository postRepository,IMapper mapper)
+        public PostsController(IPostRepository postRepository,IMapper mapper, IUserRepository userRepository)
         {
             _postRepository = postRepository;
             _mapper = mapper;
+            _userRepository = userRepository;
         }
 
         [HttpGet]
-        [ProducesResponseType(200, Type = typeof(IEnumerable<PostOutputDto>))]
+        [ProducesResponseType(200, Type = typeof(PostOutputWithAuthorDto))]
         [ProducesResponseType(400)]
-        public async Task<IActionResult> GetPostsAsync()
+        public async Task<IActionResult> GetPostsAsync(string? order, string? search, string? author, int offset, int limit)
         {
-            var posts = _mapper.Map<List<PostOutputDto>>(await _postRepository.GetPostsAsync());
+            var result = _mapper.Map<PostOutputWithAuthorDto>(await _postRepository.GetPostsAsync(order, search, author, offset, limit));
 
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            return Ok(posts);
+            return Ok(result);
         }
 
         [HttpGet("{id}")]
@@ -164,5 +168,29 @@ namespace NewsApp.Controllers
 
             return NoContent();
         }
+
+        [HttpPost, Authorize]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        async public Task<IActionResult> addPostAsync([FromBody] CreatePostDto request)
+        {
+            var userEmail = User.FindFirstValue(ClaimTypes.Email);
+
+            if (request == null)
+                return BadRequest(ModelState);
+
+            var user = _userRepository.GetUser(userEmail);
+
+
+            var postMap = _mapper.Map<Post>(request);
+
+            if (!await _postRepository.CreatePostAsync(userEmail, postMap))
+            {
+                ModelState.AddModelError("", "Something went wrong");
+                return StatusCode(500, ModelState);
+            }
+
+            return Ok();
         }
+    }
 }

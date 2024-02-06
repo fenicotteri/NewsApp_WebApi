@@ -15,8 +15,6 @@ namespace NewsApp.Data
         public DbSet<User> Users { get; set; }
         public DbSet<Comment> Comments { get; set; }
         public DbSet<Tag> Tags { get; set; }    
-        public DbSet<UserRating> UserRatings { get; set; }
-        public DbSet<PostRating> PostRatings { get; set; }
         public DbSet<PostTag> PostTags { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -35,7 +33,7 @@ namespace NewsApp.Data
 
 
             modelBuilder.Entity<Comment>()
-                .ToTable(tb => tb.HasTrigger("UpdateCommentsCount"));
+                .ToTable(tb => tb.HasTrigger("SetUpdatedAt"));
         }
 
     }

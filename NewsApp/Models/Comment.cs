@@ -7,7 +7,7 @@
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
 
-        public Post Post { get; set; } 
-        public User Author { get; set; }
+        public Post? Post { get; set; } 
+        public User? Author { get; set; }
     }
 }

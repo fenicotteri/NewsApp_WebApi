@@ -9,15 +9,18 @@ namespace NewsApp.Helper
         public MappingProfiles()
         {
             CreateMap<User, PublicUserDto>();
-            CreateMap<User, PublicUserWithRatingDto>();
             CreateMap<User, AuthOutputDto>();
             CreateMap<User, SingupDto>();
             CreateMap<SingupDto, User>();
 
             CreateMap<Post, PostOutputDto>();
-            CreateMap<Post, PostOutputDto>()
-               .ForMember(dest => dest.Rating, opt => opt.MapFrom(src => src.Rating.Value))
-               .ForMember(dest => dest.Tags, opt => opt.MapFrom(src => src.PostTags.Select(postTag => postTag.Tag)));
+            CreateMap<List<Post>, PostOutputWithAuthorDto>()
+                .ForMember(dest => dest.Posts, opt => opt.MapFrom(src => src))
+                .ForMember(dest => dest.Total, opt => opt.MapFrom(src => src.Count));
+
+            CreateMap<Post, PostOutputWithAuthorDto>();
+            CreateMap<Post, PostOutputDto>();
+               //.ForMember(dest => dest.Tags, opt => opt.MapFrom(src => src.PostTags.Select(postTag => postTag.Tag)));
 
             CreateMap<Tag, TagOutputDto>();
             CreateMap<AddTagDto, Tag>()
@@ -25,6 +28,7 @@ namespace NewsApp.Helper
            
             CreateMap<Comment, CommentOutputDto>();
             CreateMap<CreateCommentDto, Comment>();
+            CreateMap<CreatePostDto, Post>();
 
         }
     }

@@ -18,18 +18,43 @@ namespace NewsApp.Repository
                 .Include(a => a.Author)
                 .Include(post => post.PostTags)
                     .ThenInclude(postTag => postTag.Tag)
-                .Include(r => r.Rating)
                 .FirstOrDefaultAsync();
         }
 
-        public async Task<List<Post>> GetPostsAsync()
+        public async Task<List<Post>> GetPostsWithTagsAsync()
         {
             return await _context.Posts.OrderBy(x => x.Id)
-                .Include(p => p.Rating)
                 .Include(a => a.Author)
                 .Include(t => t.PostTags)
                     .ThenInclude(postTag => postTag.Tag)
                 .ToListAsync();
+        }
+
+        public async Task<List<Post>> GetPostsAsync(string? order, string? search, string? author, int offset, int limit)
+        {
+            IQueryable<Post> response = _context.Posts.Include(a => a.Author);
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                response = response.Where(x => x.Title.Contains(search) || x.Text.Contains(search));
+            }
+
+            if (!string.IsNullOrWhiteSpace(author))
+            {
+                response = response.Where(x => x.Author.Email.Contains(author) || x.Author.FirstName.Contains(author) || x.Author.LastName.Contains(author));
+            }
+
+            if  (offset > 0 && limit > 0)
+            {
+                response = response.Skip(offset).Take(limit);
+            }
+
+            if (order == "desc")
+            {
+                response = response.OrderBy(x => x.CreatedAt);
+            }
+
+            return await response.ToListAsync();
         }
 
         public bool PostExists(int id)
@@ -78,6 +103,20 @@ namespace NewsApp.Repository
         async public Task<bool> DeletePostTagAsync(PostTag postTag)
         {
             _context.Remove(postTag);
+            return await SaveAsync();
+        }
+
+        async public Task<bool> CreatePostAsync(string authorEmail, Post post)
+        {
+            var userEntity = _context.Users.Where(p => p.Email == authorEmail).FirstOrDefault();
+
+            post.Author = userEntity;
+
+            post.CreatedAt = DateTime.Now;
+            post.UpdatedAt = DateTime.Now;
+
+            _context.Add(post);
+
             return await SaveAsync();
         }
     }
