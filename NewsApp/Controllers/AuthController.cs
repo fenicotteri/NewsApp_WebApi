@@ -28,6 +28,7 @@ namespace NewsApp.Controllers
             _config = configuration;
         }
 
+        /// <summary> Регистрация пользователя </summary>
         [HttpPost("singup")]
         [ProducesResponseType(200, Type = typeof(AuthOutputDto))]
         [ProducesResponseType(400)]
@@ -60,12 +61,13 @@ namespace NewsApp.Controllers
             }
 
             AuthOutputDto result = new AuthOutputDto();
-            result.user = _mapper.Map<PublicUserDto>(_userRepository.GetUser(request.Email));
-            result.accessToken = CreateToken(userMap);
+            result.User = _mapper.Map<PublicUserDto>(_userRepository.GetUser(request.Email));
+            result.AccessToken = CreateToken(userMap);
 
             return Ok(result);
         }
 
+        /// <summary> Аутентификация пользователя </summary>
         [HttpPost("login")]
         [ProducesResponseType(200, Type = typeof(AuthOutputDto))]
         [ProducesResponseType(400)]
@@ -86,12 +88,13 @@ namespace NewsApp.Controllers
                 return BadRequest(ModelState);
 
             AuthOutputDto result = new AuthOutputDto();
-            result.user = _mapper.Map<PublicUserDto>(_userRepository.GetUser(request.Email));
-            result.accessToken = CreateToken(user) ;
+            result.User = _mapper.Map<PublicUserDto>(_userRepository.GetUser(request.Email));
+            result.AccessToken = CreateToken(user) ;
 
             return Ok(result);
         }
 
+        /// <summary> Проверить токен </summary>
         [HttpGet("whoami"), Authorize]
         [ProducesResponseType(200, Type = typeof(PublicUserDto))]
         [ProducesResponseType(400)]

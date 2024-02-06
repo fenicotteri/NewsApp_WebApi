@@ -11,6 +11,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
+using System.Reflection;
 
 namespace NewsApp
 {
@@ -73,6 +74,10 @@ namespace NewsApp
                 });
 
                 options.OperationFilter<SecurityRequirementsOperationFilter>();
+
+                // using System.Reflection;
+                var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
             });
 
 

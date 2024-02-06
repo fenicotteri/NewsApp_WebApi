@@ -24,7 +24,7 @@ namespace NewsApp.Helper
 
             CreateMap<Tag, TagOutputDto>();
             CreateMap<AddTagDto, Tag>()
-                .ForMember(dest => dest.Value, opt => opt.MapFrom(src => src.tag));
+                .ForMember(dest => dest.Value, opt => opt.MapFrom(src => src.Tag));
            
             CreateMap<Comment, CommentOutputDto>();
             CreateMap<CreateCommentDto, Comment>();

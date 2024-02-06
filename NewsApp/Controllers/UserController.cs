@@ -22,6 +22,7 @@ namespace NewsApp.Controllers
             _mapper = mapper; 
         }
 
+        /// <summary> Получить список пользователей </summary>
         [HttpGet]
         [ProducesResponseType(200, Type = typeof(IEnumerable<PublicUserDto>))]
         public IActionResult GetUsers()
@@ -36,6 +37,7 @@ namespace NewsApp.Controllers
             return Ok(users);
         }
 
+        /// <summary> Получить пользователя по идентификатору </summary>
         [HttpGet("{id}")]
         [ProducesResponseType(200, Type = typeof(PublicUserDto))]
         [ProducesResponseType(400)]
@@ -54,6 +56,7 @@ namespace NewsApp.Controllers
             return Ok(user);
         }
 
+        /// <summary> Обновить данные пользователя </summary>
         [HttpPatch("{id}"), Authorize]
         public async Task<IActionResult> UpdateUserPatch([FromBody] UpdateUserDto request, int id)
         {

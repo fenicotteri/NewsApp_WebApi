@@ -4,7 +4,7 @@ namespace NewsApp.Dto
 {
     public class AddTagDto
     {
-        public string tag { get; set; } = string.Empty;
+        public string Tag { get; set; } = string.Empty;
 
     }
 }

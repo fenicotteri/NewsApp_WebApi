@@ -27,6 +27,7 @@ namespace NewsApp.Controllers
             _mapper = mapper;
         }
 
+        /// <summary> Получить список комментариев </summary>
         [HttpGet]
         [ProducesResponseType(200, Type = typeof(IEnumerable<CommentOutputDto>))]
         [ProducesResponseType(400)]
@@ -43,6 +44,7 @@ namespace NewsApp.Controllers
 
         }
 
+        /// <summary> Создать комментарий </summary>
         [HttpPost, Authorize]
         [ProducesResponseType(200, Type = typeof(CommentOutputDto))]
         [ProducesResponseType(400)]
@@ -74,6 +76,7 @@ namespace NewsApp.Controllers
             return Ok(outputComment);
         }
 
+        /// <summary> Удалить комментарий </summary>
         [HttpDelete("{id}"), Authorize]
         [ProducesResponseType(400)]
         [ProducesResponseType(204)]

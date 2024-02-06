@@ -6,6 +6,7 @@ using NewsApp.Dto;
 using NewsApp.Interface;
 using NewsApp.Models;
 using NewsApp.Repository;
+using Swashbuckle.AspNetCore.Annotations;
 using System.Collections.Generic;
 using System.Drawing.Printing;
 using System.Security.Claims;
@@ -27,10 +28,22 @@ namespace NewsApp.Controllers
             _userRepository = userRepository;
         }
 
+        /// <summary> Получить список новостей </summary>
+        /// <param name="order">The order of sorting by creation date.</param>
+        /// <param name="search">Any text to search in post titles or content.</param>
+        /// <param name="author">Email, name, or surname of the author.</param>
+        /// <param name="offset">Number of posts to skip considering the sorting.</param>
+        /// <param name="limit">Number of posts to return considering the sorting.</param>
+        [HttpGet]
         [HttpGet]
         [ProducesResponseType(200, Type = typeof(PostOutputWithAuthorDto))]
         [ProducesResponseType(400)]
-        public async Task<IActionResult> GetPostsAsync(string? order, string? search, string? author, int offset, int limit)
+        public async Task<IActionResult> GetPostsAsync(
+            string? order,
+            string? search,
+            string? author,
+            int offset, 
+            int limit)
         {
             var result = _mapper.Map<PostOutputWithAuthorDto>(await _postRepository.GetPostsAsync(order, search, author, offset, limit));
 
@@ -42,11 +55,14 @@ namespace NewsApp.Controllers
             return Ok(result);
         }
 
+        /// <summary>
+        /// Получить новость по идентификатору
+        /// </summary>
         [HttpGet("{id}")]
         [ProducesResponseType(200, Type = typeof(PostOutputDto))]
         [ProducesResponseType(400)]
 
-        public async Task<IActionResult> GetPostAsync(int id)
+        public async Task<IActionResult> GetPostAsync([SwaggerParameter("ID of the item")] int id)
         {
             if (!_postRepository.PostExists(id))
                 return NotFound();
@@ -61,6 +77,9 @@ namespace NewsApp.Controllers
             return Ok(post);
         }
 
+        /// <summary>
+        /// Добавить тег к новости по идентификатору
+        /// </summary>
         [HttpPost("{id}/tag"), Authorize]
         [ProducesResponseType(200, Type = typeof(TagOutputDto))]
         [ProducesResponseType(400)]
@@ -97,6 +116,9 @@ namespace NewsApp.Controllers
             return Ok(outputTagMap);
         }
 
+        /// <summary>
+        /// Удаление поста по идентификатору
+        /// </summary>
         [HttpDelete("{id}"), Authorize]
         [ProducesResponseType(400)]
         [ProducesResponseType(204)]
@@ -132,6 +154,10 @@ namespace NewsApp.Controllers
             return NoContent();
         }
 
+        /// <summary>
+        /// Удаление тега по идентификатору
+        /// </summary>
+        /// <response code="404">Новость не найдена</response>
         [HttpDelete("{id}/tag"), Authorize]
         [ProducesResponseType(400)]
         [ProducesResponseType(204)]
@@ -158,7 +184,7 @@ namespace NewsApp.Controllers
                 return BadRequest(ModelState);
             }
 
-            var postTagForRemoving = await _postRepository.GetPostTagAsync(id, request.tagId);
+            var postTagForRemoving = await _postRepository.GetPostTagAsync(id, request.TagId);
 
             if (!await _postRepository.DeletePostTagAsync(postTagForRemoving))
             {
@@ -169,6 +195,9 @@ namespace NewsApp.Controllers
             return NoContent();
         }
 
+        /// <summary>
+        /// Создать новость
+        /// </summary>
         [HttpPost, Authorize]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
