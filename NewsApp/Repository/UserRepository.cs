@@ -14,31 +14,25 @@ namespace NewsApp.Repository
             _context = context;
         }
 
-        public bool CreateUser(User user)
+        public Task<bool> CreateUserAsync(User user)
         {
             _context.Add(user);
-            return Save();
+            return SaveAsync();
         }
 
-        public User GetUser(int id)
+        public async Task<User?> GetUserAsync(int id)
         {
-            return _context.Users.Where(u => u.Id == id).FirstOrDefault();
+            return await _context.Users.Where(u => u.Id == id).FirstOrDefaultAsync();
         }
 
-        public User GetUser(string email)
+        public async Task<User?> GetUserAsync(string email)
         {
-            return _context.Users.Where(u => u.Email == email).FirstOrDefault();
+            return await _context.Users.Where(u => u.Email == email).FirstOrDefaultAsync();
         }
 
-        public ICollection<User> GetUsers()
+        public async Task<ICollection<User>> GetUsersAsync()
         {
-            return _context.Users.OrderBy(x => x.Id).ToList();
-        }
-
-        public bool Save()
-        {
-            var save = _context.SaveChanges();
-            return save > 0 ? true : false;
+            return await _context.Users.OrderBy(x => x.Id).ToListAsync();
         }
 
         public bool UserExists(int id)

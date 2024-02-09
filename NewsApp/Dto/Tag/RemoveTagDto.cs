@@ -4,7 +4,7 @@ namespace NewsApp.Dto
 {
     public class RemoveTagDto
     {
-        /// <example> 1 </example>
+        /// <example>1</example>
         [Required]
         public int TagId {  get; set; }
     }

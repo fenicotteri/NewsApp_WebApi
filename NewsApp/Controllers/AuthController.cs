@@ -34,34 +34,33 @@ namespace NewsApp.Controllers
         [ProducesResponseType(400)]
         public async Task<IActionResult> Register([FromBody] SingupDto request)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
             if (request == null)
                 return BadRequest(ModelState);
-            
-            var user = _userRepository.GetUsers().Where(u => u.Email == request.Email).FirstOrDefault();
 
-            if(user != null)
+            var user = await _userRepository.GetUserAsync(request.Email);
+
+            if (user != null) 
             {
                 ModelState.AddModelError("", "User already exists");
                 return StatusCode(422, ModelState);
             }
 
-            if(!ModelState.IsValid)
-                return BadRequest(ModelState);
-
             var userMap = _mapper.Map<User>(request);
-            userMap.CreatedAt = DateTime.Now;
             userMap.UpdatedAt = DateTime.Now;
 
             CreatePasswordHash(request.Password, userMap);
 
-            if (!_userRepository.CreateUser(userMap))
+            if (! await _userRepository.CreateUserAsync(userMap))
             {
                 ModelState.AddModelError("", "Something went wrong");
                 return StatusCode(500, ModelState);
             }
 
             AuthOutputDto result = new AuthOutputDto();
-            result.User = _mapper.Map<PublicUserDto>(_userRepository.GetUser(request.Email));
+            result.User = _mapper.Map<PublicUserDto>(await _userRepository.GetUserAsync(request.Email));
             result.AccessToken = CreateToken(userMap);
 
             return Ok(result);
@@ -71,12 +70,12 @@ namespace NewsApp.Controllers
         [HttpPost("login")]
         [ProducesResponseType(200, Type = typeof(AuthOutputDto))]
         [ProducesResponseType(400)]
-        public IActionResult Login([FromBody] LoginDto request)
+        public async Task<IActionResult> Login([FromBody] LoginDto request)
         {
             if (request == null)
                 return BadRequest(ModelState);
 
-            var user = _userRepository.GetUser(request.Email);
+            var user = await _userRepository.GetUserAsync(request.Email);
 
             if (user == null)
             {
@@ -84,11 +83,11 @@ namespace NewsApp.Controllers
                 return StatusCode(422, ModelState);
             }
 
-            if(!VerifyPasswordHash(request.Password, user))
+            if (!VerifyPasswordHash(request.Password, user)) 
                 return BadRequest(ModelState);
 
             AuthOutputDto result = new AuthOutputDto();
-            result.User = _mapper.Map<PublicUserDto>(_userRepository.GetUser(request.Email));
+            result.User = _mapper.Map<PublicUserDto>(await _userRepository.GetUserAsync(request.Email));
             result.AccessToken = CreateToken(user) ;
 
             return Ok(result);
@@ -98,11 +97,14 @@ namespace NewsApp.Controllers
         [HttpGet("whoami"), Authorize]
         [ProducesResponseType(200, Type = typeof(PublicUserDto))]
         [ProducesResponseType(400)]
-        public ActionResult GetMe()
+        public async Task<ActionResult> GetMe()
         {
             var userEmail = User.FindFirstValue(ClaimTypes.Email);
 
-            var user = _mapper.Map<PublicUserDto>(_userRepository.GetUser(userEmail));
+            if (userEmail == null) 
+            { return BadRequest(ModelState); }
+
+            var user = _mapper.Map<PublicUserDto>(await _userRepository.GetUserAsync(userEmail));
             
             if (!ModelState.IsValid)
             {

@@ -12,6 +12,8 @@ namespace NewsApp.Dto
         [Required]
         public string LastName { get; set; } = string.Empty;
 
+        public IFormFile? FileBin { get; set; }
+
         /// <example>mag2003tag@test.com</example>
         [Required]
         public string Email { get; set; } = string.Empty;

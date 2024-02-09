@@ -35,7 +35,6 @@ namespace NewsApp.Controllers
         /// <param name="offset">Number of posts to skip considering the sorting.</param>
         /// <param name="limit">Number of posts to return considering the sorting.</param>
         [HttpGet]
-        [HttpGet]
         [ProducesResponseType(200, Type = typeof(PostOutputWithAuthorDto))]
         [ProducesResponseType(400)]
         public async Task<IActionResult> GetPostsAsync(
@@ -62,7 +61,7 @@ namespace NewsApp.Controllers
         [ProducesResponseType(200, Type = typeof(PostOutputDto))]
         [ProducesResponseType(400)]
 
-        public async Task<IActionResult> GetPostAsync([SwaggerParameter("ID of the item")] int id)
+        public async Task<IActionResult> GetPostAsync(int id)
         {
             if (!_postRepository.PostExists(id))
                 return NotFound();
@@ -98,7 +97,7 @@ namespace NewsApp.Controllers
                 return StatusCode(404, ModelState);
             }
 
-            if (post.Author.Email != userEmail)
+            if (post.Author != null && post.Author.Email != userEmail)
             {
                 ModelState.AddModelError("", "You are not an author");
                 return StatusCode(403, ModelState);
@@ -125,6 +124,11 @@ namespace NewsApp.Controllers
         [ProducesResponseType(404)]
         async public Task<IActionResult> DeletePostAsync(int id)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             var userEmail = User.FindFirstValue(ClaimTypes.Email);
 
             if (!_postRepository.PostExists(id))
@@ -134,15 +138,10 @@ namespace NewsApp.Controllers
 
             var postToDelete = await _postRepository.GetPostAsync(id);
 
-            if(postToDelete.Author.Email != userEmail)
+            if(postToDelete.Author != null && postToDelete.Author.Email != userEmail)
             {
                 ModelState.AddModelError("", "You are not an author");
                 return StatusCode(403, ModelState);
-            }
-
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
             }
 
             if (!await _postRepository.DeletePostAsync(postToDelete))
@@ -173,7 +172,7 @@ namespace NewsApp.Controllers
 
             var postTag = await _postRepository.GetPostAsync(id);
 
-            if (postTag.Author.Email != userEmail)
+            if (postTag.Author != null && postTag.Author.Email != userEmail)
             {
                 ModelState.AddModelError("", "You are not an author");
                 return StatusCode(403, ModelState);
@@ -186,13 +185,18 @@ namespace NewsApp.Controllers
 
             var postTagForRemoving = await _postRepository.GetPostTagAsync(id, request.TagId);
 
+            if (postTagForRemoving == null)
+            {
+                return NotFound();
+            }
+
             if (!await _postRepository.DeletePostTagAsync(postTagForRemoving))
             {
                 ModelState.AddModelError("", "Something went wrong");
                 return StatusCode(500, ModelState);
             }
 
-            return NoContent();
+            return Ok();
         }
 
         /// <summary>
@@ -205,10 +209,12 @@ namespace NewsApp.Controllers
         {
             var userEmail = User.FindFirstValue(ClaimTypes.Email);
 
+            if(userEmail == null) {  return BadRequest(ModelState); }
+
             if (request == null)
                 return BadRequest(ModelState);
 
-            var user = _userRepository.GetUser(userEmail);
+            var user = await _userRepository.GetUserAsync(userEmail);
 
 
             var postMap = _mapper.Map<Post>(request);

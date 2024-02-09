@@ -51,8 +51,7 @@ namespace NewsApp.Controllers
         async public Task<IActionResult> addCommentAsync([FromBody] CreateCommentDto request)
         {
             var userEmail = User.FindFirstValue(ClaimTypes.Email);
-            
-
+           
             if (request == null)
                 return BadRequest(ModelState);
 
@@ -85,14 +84,14 @@ namespace NewsApp.Controllers
         {
             var userEmail = User.FindFirstValue(ClaimTypes.Email);
 
-            if (!_commentRepository.CommentExists(id))
+            var commentToDelete = await _commentRepository.GetCommentAsync(id);
+
+            if (commentToDelete == null)
             {
                 return NotFound();
             }
 
-            var commentToDelete = await _commentRepository.GetCommentAsync(id);
-
-            if (commentToDelete.Author.Email != userEmail)
+            if (commentToDelete.Author != null && commentToDelete.Author.Email != userEmail)
             {
                 ModelState.AddModelError("", "You are not an author");
                 return StatusCode(403, ModelState);
@@ -109,7 +108,7 @@ namespace NewsApp.Controllers
                 return StatusCode(500, ModelState);
             }
 
-            return NoContent();
+            return Ok();
         }
     }
 }

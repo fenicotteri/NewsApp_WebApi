@@ -6,10 +6,10 @@ namespace NewsApp.Dto
     {
         /// <example>Заголовок поста</example>
         [Required]
-        public string Title { get; set; } = string.Empty;
+        public string? Title { get; set; } 
 
         /// <example>Содержание поста</example>
         [Required]
-        public string Text { get; set; } = string.Empty;
+        public string? Text { get; set; } 
     }
 }

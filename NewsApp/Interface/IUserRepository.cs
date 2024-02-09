@@ -5,15 +5,13 @@ namespace NewsApp.Interface
 {
     public interface IUserRepository
     {
-        ICollection<User> GetUsers();
+        public Task<ICollection<User>> GetUsersAsync();
 
-        User GetUser(int id);
+        public Task<User?> GetUserAsync(int id);
 
-        User GetUser(string email);
+        public Task<User?> GetUserAsync(string email);
 
-        public bool CreateUser(User user);
-
-        public bool Save();
+        public Task<bool> CreateUserAsync(User user);
 
         bool UserExists(int id);
         public Task<bool> SaveAsync();

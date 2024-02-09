@@ -25,9 +25,10 @@ namespace NewsApp.Controllers
         /// <summary> Получить список пользователей </summary>
         [HttpGet]
         [ProducesResponseType(200, Type = typeof(IEnumerable<PublicUserDto>))]
-        public IActionResult GetUsers()
+        [ProducesResponseType(400)]
+        public async Task<IActionResult> GetUsers()
         {
-            var users = _mapper.Map<List<PublicUserDto>>(_userRepository.GetUsers());
+            var users = _mapper.Map<List<PublicUserDto>>(await _userRepository.GetUsersAsync());
 
             if (!ModelState.IsValid)
             {
@@ -41,12 +42,12 @@ namespace NewsApp.Controllers
         [HttpGet("{id}")]
         [ProducesResponseType(200, Type = typeof(PublicUserDto))]
         [ProducesResponseType(400)]
-        public ActionResult GetUser(int id)
+        public async Task<ActionResult> GetUser(int id)
         {
             if (!_userRepository.UserExists(id))
                 return NotFound();
 
-            var user = _mapper.Map<PublicUserDto>(_userRepository.GetUser(id));
+            var user = _mapper.Map<PublicUserDto>(await _userRepository.GetUserAsync(id));
 
             if (!ModelState.IsValid)
             {
@@ -58,12 +59,14 @@ namespace NewsApp.Controllers
 
         /// <summary> Обновить данные пользователя </summary>
         [HttpPatch("{id}"), Authorize]
-        public async Task<IActionResult> UpdateUserPatch([FromBody] UpdateUserDto request, int id)
+         [ProducesResponseType(200, Type = typeof(PublicUserDto))]
+        [ProducesResponseType(400)]
+        public async Task<IActionResult> UpdateUserPatch([FromForm] UpdateUserDto request, int id)
         {
             if (request == null)
                 return BadRequest(ModelState);
 
-            var user = _userRepository.GetUser(id);
+            var user = await _userRepository.GetUserAsync(id);
 
             if (user == null)
             {
@@ -72,6 +75,7 @@ namespace NewsApp.Controllers
             }
 
             var userEmail = User.FindFirstValue(ClaimTypes.Email);
+
             if(userEmail != user.Email)
             {
                 ModelState.AddModelError("", "Wrong password or email");
@@ -81,6 +85,23 @@ namespace NewsApp.Controllers
             var patchDocument = new JsonPatchDocument<User>();
             patchDocument.Replace(x => x.LastName, request.LastName);
             patchDocument.Replace(x => x.FirstName, request.FirstName);
+
+            if (request.FileBin != null)
+            {
+                // Прочитать имя файла
+                var fileName = Path.GetFileName(request.FileBin.FileName);
+
+                // Прочитать содержимое файла в байтовый массив
+                using (var memoryStream = new MemoryStream())
+                {
+                    await request.FileBin.CopyToAsync(memoryStream);
+                    var fileBytes = memoryStream.ToArray();
+
+                    patchDocument.Replace(x => x.FileBin, fileBytes);
+                    patchDocument.Replace(x => x.FilePath, fileName);
+                }
+            
+            }
 
             if (!await _userRepository.UpdateUserPatchAsync(user, patchDocument))
             {

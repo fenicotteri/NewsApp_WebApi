@@ -6,9 +6,9 @@ namespace NewsApp.Dto
     {
         /// <example>Текст комментария</example>
         [Required]
-        public string Text { get; set; }
+        public string? Text { get; set; }
 
-        /// <example> 1 </example>
+        /// <example>1</example>
         [Required]
         public int PostId { get; set; }
     }

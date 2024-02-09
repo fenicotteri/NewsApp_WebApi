@@ -40,10 +40,6 @@ namespace NewsApp.Repository
             comment.Author = userEntity;
             comment.Post = postEntity;
 
-
-            comment.CreatedAt = DateTime.Now;
-            comment.UpdatedAt = DateTime.Now;
-
             _context.Add(comment);
 
             return await SaveAsync();
@@ -55,7 +51,7 @@ namespace NewsApp.Repository
             return await SaveAsync();
         }
 
-        async public Task<Comment> GetCommentAsync(int id)
+        async public Task<Comment?> GetCommentAsync(int id)
         {
             return await _context.Comments.Where(c => c.Id == id)
                 .Include(a => a.Author)

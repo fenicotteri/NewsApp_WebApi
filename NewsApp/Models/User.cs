@@ -8,9 +8,10 @@
         public string Email { get; set; } = string.Empty;
 
         public byte[]? PasswordSalt { get; set; }
-        public string? AvatarPath { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime UpdatedAt { get; set; }
+        public byte[]? FileBin { get; set; }
+        public string? FilePath { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public DateTime UpdatedAt { get; set; } = DateTime.Now;
         public byte[]? PasswordHash { get; set; }
 
         public ICollection<Post>? Posts { get; set; }

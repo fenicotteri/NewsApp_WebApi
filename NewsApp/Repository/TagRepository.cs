@@ -12,7 +12,7 @@ namespace NewsApp.Repository
         {
             _context = context;
         }
-        public ICollection<Tag> GetTags(int postId)
+        public ICollection<Tag?> GetTags(int postId)
         {
             return _context.PostTags.Where(p => p.PostId == postId).Select(t => t.Tag).ToList();
         }

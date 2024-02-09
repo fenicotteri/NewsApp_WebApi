@@ -5,7 +5,7 @@ namespace NewsApp.Interface
     public interface IPostRepository
     {
         Task<Post> GetPostAsync(int id);
-        Task<PostTag> GetPostTagAsync(int postId, int tagId);
+        Task<PostTag?> GetPostTagAsync(int postId, int tagId);
         Task<List<Post>> GetPostsWithTagsAsync();
         Task<List<Post>> GetPostsAsync(string order, string search, string author, int offset, int limit);
         bool PostExists(int id);

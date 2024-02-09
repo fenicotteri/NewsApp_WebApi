@@ -80,9 +80,6 @@ namespace NewsApp.Repository
 
             _context.Add(postTag);
 
-            tag.CreatedAt = DateTime.Now;
-            tag.UpdatedAt = DateTime.Now;
-
             _context.Add(tag);
 
             return await SaveAsync();
@@ -94,7 +91,7 @@ namespace NewsApp.Repository
             return await SaveAsync();
         }
 
-        async public Task<PostTag> GetPostTagAsync(int postId, int tagId)
+        async public Task<PostTag?> GetPostTagAsync(int postId, int tagId)
         {
             return await _context.PostTags.Where(p => p.TagId == tagId && p.PostId == postId)
                 .FirstOrDefaultAsync();
@@ -111,9 +108,6 @@ namespace NewsApp.Repository
             var userEntity = _context.Users.Where(p => p.Email == authorEmail).FirstOrDefault();
 
             post.Author = userEntity;
-
-            post.CreatedAt = DateTime.Now;
-            post.UpdatedAt = DateTime.Now;
 
             _context.Add(post);
 

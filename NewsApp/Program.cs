@@ -12,6 +12,8 @@ using System.Text.Json.Serialization;
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
+using Microsoft.AspNetCore.Hosting;
+using NewsApp.Helper;
 
 namespace NewsApp
 {
@@ -53,7 +55,7 @@ namespace NewsApp
         private static void ConfigureServices(WebApplicationBuilder builder, IServiceCollection serviceCollection)
         {
             serviceCollection.AddControllers().AddNewtonsoftJson();
-            serviceCollection.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+            serviceCollection.AddAutoMapper(typeof(MappingProfiles));
 
             // сервисы DI
             serviceCollection.AddScoped<IUserRepository, UserRepository>();

@@ -18,11 +18,11 @@ namespace NewsApp.Dto
 
         /// <example>mag2003tag@test.ru</example>
         [Required]
-        public string Email { get; set; }
+        public string? Email { get; set; }
 
         /// <example>/images/1685004747837-194473147.png</example>
         [Required]
-        public string? AvatarPath { get; set; }
+        public string? FilePath { get; set; }
 
         [Required]
         public DateTime CreatedAt { get; set; }
