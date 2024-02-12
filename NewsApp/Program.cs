@@ -14,94 +14,116 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 using Microsoft.AspNetCore.Hosting;
 using NewsApp.Helper;
+using Microsoft.AspNetCore.Identity;
+using NewsApp.Models;
+using Microsoft.Extensions.Options;
 
-namespace NewsApp
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
+builder.Services.AddControllers().AddNewtonsoftJson();
+builder.Services.AddAutoMapper(typeof(MappingProfiles));
+
+// сервисы DI
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IPostRepository, PostRepository>();
+builder.Services.AddScoped<ITagRepository, TagRepository>();
+builder.Services.AddScoped<ICommentRepository, CommentRepository>();
+
+// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddEndpointsApiExplorer();
+
+builder.Services.AddSwaggerGen(option =>
 {
-    public class Program
+    option.SwaggerDoc("v1", new OpenApiInfo { Title = "Demo API", Version = "v1" });
+    option.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
-        public static void Main(string[] args)
-        {
-            var builder = WebApplication.CreateBuilder(args);
+        In = ParameterLocation.Header,
+        Description = "Please enter a valid token",
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        BearerFormat = "JWT",
+        Scheme = "Bearer"
+    });
 
-            // Add services to the container.
-            var services = builder.Services;
-            ConfigureServices(builder, services);
-            var app = builder.Build();
+    option.OperationFilter<SecurityRequirementsOperationFilter>();
 
-            var webHostEnvironment = app.Environment;
-            Configure(app, webHostEnvironment);
-        }
+    // using System.Reflection;
+    var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    option.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
 
-        // Configure the HTTP request pipeline.
-        private static void Configure(WebApplication webApplication, IWebHostEnvironment webHostEnvironment)
-        {
-            if (webHostEnvironment.IsDevelopment())
-            {
-                webApplication.UseSwagger();
-                webApplication.UseSwaggerUI();
-            }
+});
 
-            webApplication.UseHttpsRedirection();
+// our DB configuration
+builder.Services.AddDbContext<DataContext>(options =>
+{
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+});
 
-            webApplication.UseAuthentication();
+builder.Services.AddIdentity<User, IdentityRole>(options =>
+{
+    options.Password.RequireDigit = true;
+    options.Password.RequireLowercase = true;
+    options.Password.RequireUppercase = true;
+    options.Password.RequireNonAlphanumeric = true;
+    options.Password.RequiredLength = 10;
+})
+.AddEntityFrameworkStores<DataContext>();
 
-            webApplication.UseAuthorization();
+// to see all functions of Core Identity in our api 
+// builder.Services.AddIdentityApiEndpoints<IdentityUser>()
+//    .AddEntityFrameworkStores<DataContext>();
 
-            webApplication.MapControllers();
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme =
+    options.DefaultChallengeScheme =
+    options.DefaultForbidScheme =
+    options.DefaultScheme =
+    options.DefaultSignInScheme =
+    options.DefaultSignOutScheme = JwtBearerDefaults.AuthenticationScheme;
 
-            webApplication.Run();
-        }
-
-        private static void ConfigureServices(WebApplicationBuilder builder, IServiceCollection serviceCollection)
-        {
-            serviceCollection.AddControllers().AddNewtonsoftJson();
-            serviceCollection.AddAutoMapper(typeof(MappingProfiles));
-
-            // сервисы DI
-            serviceCollection.AddScoped<IUserRepository, UserRepository>();
-            serviceCollection.AddScoped<IPostRepository, PostRepository>();
-            serviceCollection.AddScoped<ITagRepository, TagRepository>();
-            serviceCollection.AddScoped<ICommentRepository, CommentRepository>();
-
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-            serviceCollection.AddEndpointsApiExplorer();
-            serviceCollection.AddSwaggerGen(options =>
-            {
-                options.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
-                {
-                    Description = "Standard Authorization header using the Bearer scheme (\"bearer {token}\")",
-                    In = ParameterLocation.Header,
-                    Name = "Authorization",
-                    Type = SecuritySchemeType.ApiKey
-                });
-
-                options.OperationFilter<SecurityRequirementsOperationFilter>();
-
-                // using System.Reflection;
-                var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-                options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
-            });
+}).AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidIssuer = builder.Configuration["JWT:Issuer"],
+        ValidateAudience = true,
+        ValidAudience = builder.Configuration["JWT:Audience"],
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(
+            System.Text.Encoding.UTF8.GetBytes(builder.Configuration["JWT:SigningKey"])
+        )
+    };
+});
 
 
-            serviceCollection.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                .AddJwtBearer(options =>
-                {
-                    options.TokenValidationParameters = new TokenValidationParameters
-                    {
-                        ValidateIssuerSigningKey = true,
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8
-                            .GetBytes(builder.Configuration.GetSection("AppSettings:Token").Value)),
-                        ValidateIssuer = false,
-                        ValidateAudience = false
-                    };
-                });
+// Configure the HTTP request pipeline.
+var app = builder.Build();
 
-            serviceCollection.AddDbContext<DataContext>(options =>
-            {
-                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
-            });
-
-            serviceCollection.AddAuthorization();
-        }
-    }
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
+
+app.UseHttpsRedirection();
+
+app.UseCors(x => x
+     .AllowAnyMethod()
+     .AllowAnyHeader()
+     .AllowCredentials()
+      //.WithOrigins("http://localhost:5246"))
+      .SetIsOriginAllowed(origin => true));
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapControllers();
+
+app.Run();
+

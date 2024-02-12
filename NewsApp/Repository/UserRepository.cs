@@ -20,12 +20,12 @@ namespace NewsApp.Repository
             return SaveAsync();
         }
 
-        public async Task<User?> GetUserAsync(int id)
+        public async Task<User?> GetUserAsync(string id)
         {
             return await _context.Users.Where(u => u.Id == id).FirstOrDefaultAsync();
         }
 
-        public async Task<User?> GetUserAsync(string email)
+        public async Task<User?> GetUserByEmailAsync(string email)
         {
             return await _context.Users.Where(u => u.Email == email).FirstOrDefaultAsync();
         }
@@ -35,7 +35,7 @@ namespace NewsApp.Repository
             return await _context.Users.OrderBy(x => x.Id).ToListAsync();
         }
 
-        public bool UserExists(int id)
+        public bool UserExists(string id)
         {
             return _context.Users.Any(u => u.Id == id);
         }

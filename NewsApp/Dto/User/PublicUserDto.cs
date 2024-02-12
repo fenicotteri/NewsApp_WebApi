@@ -6,7 +6,7 @@ namespace NewsApp.Dto
     {
         /// <example> 1 </example>
         [Required]
-        public int Id { get; set; }
+        public string Id { get; set; } = string.Empty;
 
         /// <example>Мария</example>
         [Required]

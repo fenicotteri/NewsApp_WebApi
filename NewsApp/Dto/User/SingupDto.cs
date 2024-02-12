@@ -12,6 +12,7 @@ namespace NewsApp.Dto
         /// <example> 12345 </example>
         [Required]
         [DataType(DataType.Password)]
+        [MinLength(10, ErrorMessage = "Password should be larger.")]
         public string Password { get; set; } = string.Empty;
     }
 }

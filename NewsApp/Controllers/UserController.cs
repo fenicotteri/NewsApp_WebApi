@@ -1,7 +1,9 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using NewsApp.Dto;
 using NewsApp.Interface;
 using NewsApp.Models;
@@ -13,12 +15,13 @@ namespace NewsApp.Controllers
     [ApiController]
     public class UsersController : Controller
     {
-        private readonly IUserRepository _userRepository;
+        // private readonly IUserRepository _userRepository;
         private readonly IMapper _mapper;
+        private readonly UserManager<User> _userManager;
 
-        public UsersController(IUserRepository userRepository, IMapper mapper)
+        public UsersController(UserManager<User> userManager, IMapper mapper)
         {
-            _userRepository = userRepository;
+            _userManager = userManager;
             _mapper = mapper; 
         }
 
@@ -28,7 +31,7 @@ namespace NewsApp.Controllers
         [ProducesResponseType(400)]
         public async Task<IActionResult> GetUsers()
         {
-            var users = _mapper.Map<List<PublicUserDto>>(await _userRepository.GetUsersAsync());
+            var users = _mapper.Map<List<PublicUserDto>>(await _userManager.Users.ToListAsync());
 
             if (!ModelState.IsValid)
             {
@@ -39,15 +42,12 @@ namespace NewsApp.Controllers
         }
 
         /// <summary> Получить пользователя по идентификатору </summary>
-        [HttpGet("{id}")]
+        [HttpGet("{id:int}")]
         [ProducesResponseType(200, Type = typeof(PublicUserDto))]
         [ProducesResponseType(400)]
-        public async Task<ActionResult> GetUser(int id)
+        public async Task<ActionResult> GetUser(string id)
         {
-            if (!_userRepository.UserExists(id))
-                return NotFound();
-
-            var user = _mapper.Map<PublicUserDto>(await _userRepository.GetUserAsync(id));
+            var user = _mapper.Map<PublicUserDto>(await _userManager.FindByIdAsync(id));
 
             if (!ModelState.IsValid)
             {
@@ -57,16 +57,17 @@ namespace NewsApp.Controllers
             return Ok(user);
         }
 
+        /*
         /// <summary> Обновить данные пользователя </summary>
-        [HttpPatch("{id}"), Authorize]
+        [HttpPatch("{id:int}"), Authorize]
          [ProducesResponseType(200, Type = typeof(PublicUserDto))]
         [ProducesResponseType(400)]
-        public async Task<IActionResult> UpdateUserPatch([FromForm] UpdateUserDto request, int id)
+        public async Task<IActionResult> UpdateUserPatch([FromForm] UpdateUserDto request, string id)
         {
             if (request == null)
                 return BadRequest(ModelState);
 
-            var user = await _userRepository.GetUserAsync(id);
+            var user = await _userManager.FindByIdAsync(id);
 
             if (user == null)
             {
@@ -111,6 +112,7 @@ namespace NewsApp.Controllers
 
             return Ok();
         }
+        */
     } 
 
     

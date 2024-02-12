@@ -1,10 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using NewsApp.Models;
 using System.Reflection.Metadata;
 
 namespace NewsApp.Data
 {
-    public class DataContext : DbContext
+    public class DataContext : IdentityDbContext<User>
     {
         public DataContext(DbContextOptions<DataContext> options) : base(options)
         {
@@ -12,14 +14,16 @@ namespace NewsApp.Data
         }
 
         public DbSet<Post> Posts { get; set; }
-        public DbSet<User> Users { get; set; }
+        // public DbSet<User> Users { get; set; }
         public DbSet<Comment> Comments { get; set; }
         public DbSet<Tag> Tags { get; set; }    
         public DbSet<PostTag> PostTags { get; set; }
 
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // base.OnModelCreating(modelBuilder);
+            base.OnModelCreating(modelBuilder);
+
             modelBuilder.Entity<PostTag>()
                 .HasKey(pt => new { pt.PostId, pt.TagId });
             modelBuilder.Entity<PostTag>()
@@ -34,7 +38,13 @@ namespace NewsApp.Data
 
             modelBuilder.Entity<Comment>()
                 .ToTable(tb => tb.HasTrigger("SetUpdatedAt"));
+
+            // modelBuilder.Entity<User>().HasKey(p => p.Id);
+            // modelBuilder.Entity<IdentityUserLogin<string>>().HasNoKey();
+            //modelBuilder.Entity<IdentityUserRole<string>>().HasNoKey();
+            //modelBuilder.Entity<IdentityUserToken<string>>().HasNoKey();
+
         }
 
-    }
+}
 }
