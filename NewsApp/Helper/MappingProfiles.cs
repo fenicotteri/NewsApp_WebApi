@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Identity;
 using NewsApp.Dto;
 using NewsApp.Models;
 
@@ -11,6 +12,7 @@ namespace NewsApp.Helper
             CreateMap<User, PublicUserDto>();
             CreateMap<User, AuthOutputDto>();
             CreateMap<User, SingupDto>();
+            CreateMap<IdentityResult, PublicUserDto>();
             CreateMap<SingupDto, User>();
 
             CreateMap<Post, PostOutputDto>();

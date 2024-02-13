@@ -15,12 +15,13 @@ namespace NewsApp.Controllers
     [ApiController]
     public class UsersController : Controller
     {
-        // private readonly IUserRepository _userRepository;
+        private readonly IUserRepository _userRepository;
         private readonly IMapper _mapper;
         private readonly UserManager<User> _userManager;
 
-        public UsersController(UserManager<User> userManager, IMapper mapper)
+        public UsersController(UserManager<User> userManager, IUserRepository userRepository, IMapper mapper)
         {
+            _userRepository = userRepository;
             _userManager = userManager;
             _mapper = mapper; 
         }
@@ -42,7 +43,7 @@ namespace NewsApp.Controllers
         }
 
         /// <summary> Получить пользователя по идентификатору </summary>
-        [HttpGet("{id:int}")]
+        [HttpGet("{id}")]
         [ProducesResponseType(200, Type = typeof(PublicUserDto))]
         [ProducesResponseType(400)]
         public async Task<ActionResult> GetUser(string id)
@@ -57,9 +58,9 @@ namespace NewsApp.Controllers
             return Ok(user);
         }
 
-        /*
+        
         /// <summary> Обновить данные пользователя </summary>
-        [HttpPatch("{id:int}"), Authorize]
+        [HttpPatch("{id}"), Authorize]
          [ProducesResponseType(200, Type = typeof(PublicUserDto))]
         [ProducesResponseType(400)]
         public async Task<IActionResult> UpdateUserPatch([FromForm] UpdateUserDto request, string id)
@@ -112,7 +113,7 @@ namespace NewsApp.Controllers
 
             return Ok();
         }
-        */
+        
     } 
 
     

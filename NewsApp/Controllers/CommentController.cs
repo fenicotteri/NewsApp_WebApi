@@ -76,7 +76,7 @@ namespace NewsApp.Controllers
         }
 
         /// <summary> Удалить комментарий </summary>
-        [HttpDelete("{id:int}"), Authorize]
+        [HttpDelete("{id}"), Authorize]
         [ProducesResponseType(400)]
         [ProducesResponseType(204)]
         [ProducesResponseType(404)]

@@ -17,6 +17,7 @@ using NewsApp.Helper;
 using Microsoft.AspNetCore.Identity;
 using NewsApp.Models;
 using Microsoft.Extensions.Options;
+using NewsApp.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,23 +32,20 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IPostRepository, PostRepository>();
 builder.Services.AddScoped<ITagRepository, TagRepository>();
 builder.Services.AddScoped<ICommentRepository, CommentRepository>();
+builder.Services.AddScoped<ITokenService, TokenService>();
 
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSwaggerGen(option =>
 {
     option.SwaggerDoc("v1", new OpenApiInfo { Title = "Demo API", Version = "v1" });
-    option.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    option.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
     {
+        Description = "Standard Authorization header using the Bearer scheme (\"bearer {token}\")",
         In = ParameterLocation.Header,
-        Description = "Please enter a valid token",
         Name = "Authorization",
-        Type = SecuritySchemeType.Http,
-        BearerFormat = "JWT",
-        Scheme = "Bearer"
+        Type = SecuritySchemeType.ApiKey
     });
-
     option.OperationFilter<SecurityRequirementsOperationFilter>();
 
     // using System.Reflection;
@@ -69,6 +67,7 @@ builder.Services.AddIdentity<User, IdentityRole>(options =>
     options.Password.RequireUppercase = true;
     options.Password.RequireNonAlphanumeric = true;
     options.Password.RequiredLength = 10;
+    options.User.AllowedUserNameCharacters = "йцукенгшщзхъэждлорпавыфячсмитьбюЙЦУКЕНГШЩЗХЪЭЖДЛОРПАВЫФЯЧСМИТЬБЮqwertyuioplkjhgfdsazxcvbnmQWERTYUIOPLKJHGFDSAZXCVBNM1234567890.@"; // Разрешить любые символы в имени пользователя
 })
 .AddEntityFrameworkStores<DataContext>();
 

@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using NewsApp.Data;
@@ -17,13 +18,18 @@ namespace NewsApp.Controllers
     [ApiController]
     public class AuthController : Controller
     {
-        private readonly IUserRepository _userRepository;
+        // private readonly IUserRepository _userRepository;
+        private readonly UserManager<User> _userManager;
         private readonly IMapper _mapper;
+        private readonly SignInManager<User> _signInManager;
+        private readonly ITokenService _tokenService;
 
-        public AuthController(IUserRepository userRepository, IMapper mapper)
+        public AuthController(UserManager<User> userManager,ITokenService tokenService, IMapper mapper, SignInManager<User> signInManager)
         {
-            _userRepository = userRepository;
+            _userManager = userManager;
+            _tokenService = tokenService;
             _mapper = mapper;
+            _signInManager = signInManager;
         }
 
         /// <summary> Регистрация пользователя </summary>
@@ -32,21 +38,47 @@ namespace NewsApp.Controllers
         [ProducesResponseType(400)]
         public async Task<IActionResult> Register([FromBody] SingupDto request)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            if (request == null)
-                return BadRequest(ModelState);
-
-            var user = await _userRepository.GetUserAsync(request.Email);
-
-            if (user != null)
+            try
             {
-                ModelState.AddModelError("", "User already exists");
-                return StatusCode(422, ModelState);
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+
+                if (request == null)
+                    return BadRequest(ModelState);
+
+                var user = await _userManager.FindByEmailAsync(request.Email);
+
+                if (user != null)
+                {
+                    ModelState.AddModelError("", "User already exists");
+                    return StatusCode(422, ModelState);
+                }
+
+                var userMap = _mapper.Map<User>(request);
+                userMap.UserName = userMap.Email;
+                var createdUser = await _userManager.CreateAsync(userMap, request.Password);
+
+                if (createdUser.Succeeded)
+                { 
+                    return Ok(
+                        new AuthOutputDto
+                        {
+                            User = _mapper.Map<PublicUserDto>(await _userManager.FindByEmailAsync(request.Email)),
+                            AccessToken = _tokenService.CreateToken(userMap)
+                        }
+                    );
+
+                }
+                else
+                {
+                    return StatusCode(500, createdUser.Errors);
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
             }
 
-            return Ok();
         }
 
         /// <summary> Аутентификация пользователя </summary>
@@ -58,15 +90,22 @@ namespace NewsApp.Controllers
             if (request == null)
                 return BadRequest(ModelState);
 
-            var user = await _userRepository.GetUserAsync(request.Email);
+            var user = await _userManager.FindByEmailAsync(request.Email);
 
             if (user == null)
             {
-                ModelState.AddModelError("", "User does not exists");
-                return StatusCode(422, ModelState);
+                return Unauthorized("Invalid Email");
             }
 
-            return Ok();
+            var result = await _signInManager.CheckPasswordSignInAsync(user, request.Password, false);
+
+            return Ok(  
+                        new AuthOutputDto
+                        {
+                            User = _mapper.Map<PublicUserDto>(await _userManager.FindByEmailAsync(request.Email)),
+                            AccessToken = _tokenService.CreateToken(user)
+                        }
+                    );
         }
 
         /// <summary> Проверить токен </summary>
@@ -80,7 +119,7 @@ namespace NewsApp.Controllers
             if (userEmail == null)
             { return BadRequest(ModelState); }
 
-            var user = _mapper.Map<PublicUserDto>(await _userRepository.GetUserAsync(userEmail));
+            var user = _mapper.Map<PublicUserDto>(await _userManager.FindByEmailAsync(userEmail));
 
             if (!ModelState.IsValid)
             {
