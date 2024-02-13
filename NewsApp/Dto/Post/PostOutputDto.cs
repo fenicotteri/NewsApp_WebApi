@@ -18,7 +18,7 @@ namespace NewsApp.Dto
         public string? CoverPath { get; set; }
 
         /// <example> 1 </example>
-        public int AuthorId { get; set; }
+        public string? AuthorId { get; set; }
 
         public PublicUserDto? Author { get; set; }
         // public ICollection<TagOutputDto>? Tags { get; set; }

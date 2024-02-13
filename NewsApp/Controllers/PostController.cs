@@ -57,7 +57,7 @@ namespace NewsApp.Controllers
         /// <summary>
         /// Получить новость по идентификатору
         /// </summary>
-        [HttpGet("{id}")]
+        [HttpGet("{id:int}")]
         [ProducesResponseType(200, Type = typeof(PostOutputDto))]
         [ProducesResponseType(400)]
 
@@ -79,7 +79,7 @@ namespace NewsApp.Controllers
         /// <summary>
         /// Добавить тег к новости по идентификатору
         /// </summary>
-        [HttpPost("{id}/tag"), Authorize]
+        [HttpPost("{id:int}/tag"), Authorize]
         [ProducesResponseType(200, Type = typeof(TagOutputDto))]
         [ProducesResponseType(400)]
         async public Task<IActionResult> addTagAsync(int id, [FromBody] AddTagDto request)
@@ -118,7 +118,7 @@ namespace NewsApp.Controllers
         /// <summary>
         /// Удаление поста по идентификатору
         /// </summary>
-        [HttpDelete("{id}"), Authorize]
+        [HttpDelete("{id:int}"), Authorize]
         [ProducesResponseType(400)]
         [ProducesResponseType(204)]
         [ProducesResponseType(404)]
@@ -157,7 +157,7 @@ namespace NewsApp.Controllers
         /// Удаление тега по идентификатору
         /// </summary>
         /// <response code="404">Новость не найдена</response>
-        [HttpDelete("{id}/tag"), Authorize]
+        [HttpDelete("{id:int}/tag"), Authorize]
         [ProducesResponseType(400)]
         [ProducesResponseType(204)]
         [ProducesResponseType(404)]
