@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
 using NewsApp.Data;
+using NewsApp.Helper;
 using NewsApp.Interface;
 using NewsApp.Models;
 
@@ -30,29 +31,26 @@ namespace NewsApp.Repository
                 .ToListAsync();
         }
 
-        public async Task<List<Post>> GetPostsAsync(string? order, string? search, string? author, int offset, int limit)
+        public async Task<List<Post>> GetPostsAsync(QueryObject query)
         {
-            IQueryable<Post> response = _context.Posts.Include(a => a.Author);
+            var response = _context.Posts.Include(a => a.Author).AsQueryable();
+            //IQueryable<Post> response = _context.Posts.Include(a => a.Author);
 
-            if (!string.IsNullOrWhiteSpace(search))
+            if (!string.IsNullOrWhiteSpace(query.Search))
             {
-                response = response.Where(x => x.Title.Contains(search) || x.Text.Contains(search));
+                response = response.Where(x => x.Title.Contains(query.Search) || x.Text.Contains(query.Search));
             }
 
-            if (!string.IsNullOrWhiteSpace(author))
+            if (!string.IsNullOrWhiteSpace(query.Author))
             {
-                response = response.Where(x => x.Author.Email.Contains(author) || x.Author.FirstName.Contains(author) || x.Author.LastName.Contains(author));
+                response = response.Where(x => x.Author.Email.Contains(query.Author) || x.Author.FirstName.Contains(query.Author) || x.Author.LastName.Contains(query.Author));
             }
+            
+            response = query.IsDecsending ? response.OrderByDescending(s => s.UpdatedAt) : response;
+             
 
-            if  (offset > 0 && limit > 0)
-            {
-                response = response.Skip(offset).Take(limit);
-            }
-
-            if (order == "desc")
-            {
-                response = response.OrderBy(x => x.CreatedAt);
-            }
+            var skipNumber = (query.PageNumber - 1) * query.PageSize;
+            response = response.Skip(skipNumber).Take(query.PageSize);
 
             return await response.ToListAsync();
         }
@@ -113,5 +111,7 @@ namespace NewsApp.Repository
 
             return await SaveAsync();
         }
+
+       
     }
 }

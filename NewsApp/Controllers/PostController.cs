@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using NewsApp.Dto;
+using NewsApp.Helper;
 using NewsApp.Interface;
 using NewsApp.Models;
 using NewsApp.Repository;
@@ -28,23 +29,20 @@ namespace NewsApp.Controllers
             _userRepository = userRepository;
         }
 
+        
         /// <summary> Получить список новостей </summary>
         /// <param name="order">The order of sorting by creation date.</param>
         /// <param name="search">Any text to search in post titles or content.</param>
         /// <param name="author">Email, name, or surname of the author.</param>
         /// <param name="offset">Number of posts to skip considering the sorting.</param>
         /// <param name="limit">Number of posts to return considering the sorting.</param>
+        
         [HttpGet]
         [ProducesResponseType(200, Type = typeof(PostOutputWithAuthorDto))]
         [ProducesResponseType(400)]
-        public async Task<IActionResult> GetPostsAsync(
-            string? order,
-            string? search,
-            string? author,
-            int offset, 
-            int limit)
+        public async Task<IActionResult> GetPostsAsync([FromQuery] QueryObject query)
         {
-            var result = _mapper.Map<PostOutputWithAuthorDto>(await _postRepository.GetPostsAsync(order, search, author, offset, limit));
+            var result = _mapper.Map<PostOutputWithAuthorDto>(await _postRepository.GetPostsAsync(query));
 
             if (!ModelState.IsValid)
             {

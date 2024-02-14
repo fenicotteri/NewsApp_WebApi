@@ -1,4 +1,5 @@
-﻿using NewsApp.Models;
+﻿using NewsApp.Helper;
+using NewsApp.Models;
 
 namespace NewsApp.Interface
 {
@@ -7,7 +8,7 @@ namespace NewsApp.Interface
         Task<Post> GetPostAsync(int id);
         Task<PostTag?> GetPostTagAsync(int postId, int tagId);
         Task<List<Post>> GetPostsWithTagsAsync();
-        Task<List<Post>> GetPostsAsync(string order, string search, string author, int offset, int limit);
+        Task<List<Post>> GetPostsAsync(QueryObject query);
         bool PostExists(int id);
         public Task<bool> CreateTagAsync(int postId, Tag tag);
         public Task<bool> SaveAsync();
