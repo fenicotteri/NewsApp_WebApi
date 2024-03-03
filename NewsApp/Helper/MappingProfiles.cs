@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using NewsApp.Dto;
+using NewsApp.Dto.Post;
 using NewsApp.Models;
 
 namespace NewsApp.Helper

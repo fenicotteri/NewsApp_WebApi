@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using NewsApp.Dto;
+using NewsApp.Dto.Post;
 using NewsApp.Helper;
 using NewsApp.Interface;
 using NewsApp.Models;
@@ -51,6 +52,7 @@ namespace NewsApp.Controllers
 
             return Ok(result);
         }
+
 
         /// <summary>
         /// Получить новость по идентификатору

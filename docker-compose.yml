@@ -1,0 +1,44 @@
+version: '3.4'
+
+networks:
+  dev:
+    driver: bridge
+
+services:
+  newsapp:
+    container_name: news-app
+    image: ${DOCKER_REGISTRY-}newsapp
+    build:
+      context: .
+      dockerfile: NewsApp/Dockerfile
+    ports:
+      - "8088:80"
+    networks: 
+      - dev
+    depends_on:
+      - app_db
+    environment:
+     - ConnectionString_DefaultPostgreConnection=Server=app_db;Port=5432;Database=NewsAppDB;User Id=postgres;Password=Bigl_2003!;
+     - ASPNETCORE_URLS=http://+:80
+
+    
+  app_db:
+     container_name: postgres-db
+     image: postgres:latest
+     environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Bigl_2003!
+      POSTGRES_DB: NewsAppDB
+     ports:
+      - "5432:5432"
+     networks: 
+      - dev
+     volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+volumes:
+  postgres-data:  
+  
+
+      
+    

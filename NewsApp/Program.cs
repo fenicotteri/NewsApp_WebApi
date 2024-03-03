@@ -54,11 +54,20 @@ builder.Services.AddSwaggerGen(option =>
 
 });
 
+
 // our DB configuration
+/*
 builder.Services.AddDbContext<DataContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
+*/
+
+builder.Services.AddDbContext<DataContext>(options =>
+{
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultPostgreConnection"));
+});
+
 
 builder.Services.AddIdentity<User, IdentityRole>(options =>
 {
@@ -74,6 +83,8 @@ builder.Services.AddIdentity<User, IdentityRole>(options =>
 // to see all functions of Core Identity in our api 
 // builder.Services.AddIdentityApiEndpoints<IdentityUser>()
 //    .AddEntityFrameworkStores<DataContext>();
+
+builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddAuthentication(options =>
 {
@@ -104,20 +115,16 @@ builder.Services.AddAuthentication(options =>
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-
 app.UseHttpsRedirection();
 
+app.UseSwagger();
+app.UseSwaggerUI();
+
 app.UseCors(x => x
-     .AllowAnyMethod()
-     .AllowAnyHeader()
-     .AllowCredentials()
-      //.WithOrigins("http://localhost:5246"))
-      .SetIsOriginAllowed(origin => true));
+         .AllowAnyMethod()
+         .AllowAnyHeader()
+         .AllowCredentials()
+         .SetIsOriginAllowed(origin => true));
 
 app.UseAuthentication();
 app.UseAuthorization();

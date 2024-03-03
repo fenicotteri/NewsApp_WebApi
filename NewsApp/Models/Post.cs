@@ -10,8 +10,8 @@ namespace NewsApp.Models
         public string Text { get; set; } = string.Empty;
         public string? CoverPath { get; set; }
         public int CommentsCount { get; set; } = 0;
-        public DateTime CreatedAt { get; set; } = DateTime.Now;
-        public DateTime UpdatedAt { get; set; } = DateTime.Now;
+        public DateTime CreatedAt { get; set; } = DateTime.Now.ToUniversalTime();
+        public DateTime UpdatedAt { get; set; } = DateTime.Now.ToUniversalTime();
 
         [ForeignKey("AuthorId")]
         public User? Author { get; set; }

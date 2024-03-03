@@ -12,8 +12,8 @@ namespace NewsApp.Models
 
         public byte[]? FileBin { get; set; }
         public string? FilePath { get; set; }
-        public DateTime CreatedAt { get; set; } = DateTime.Now;
-        public DateTime UpdatedAt { get; set; } = DateTime.Now;
+        public DateTime CreatedAt { get; set; } = DateTime.Now.ToUniversalTime();
+        public DateTime UpdatedAt { get; set; } = DateTime.Now.ToUniversalTime();
 
         public ICollection<Post>? Posts { get; set; }
         public ICollection<Comment>? Comments { get; set; } 

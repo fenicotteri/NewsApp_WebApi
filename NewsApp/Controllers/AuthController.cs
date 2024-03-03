@@ -14,6 +14,7 @@ using System.Security.Cryptography;
 
 namespace NewsApp.Controllers
 {
+
     [Route("[controller]")]
     [ApiController]
     public class AuthController : Controller
