@@ -119,6 +119,7 @@ app.UseHttpsRedirection();
 
 app.UseSwagger();
 app.UseSwaggerUI();
+app.ApplyMigrations();
 
 app.UseCors(x => x
          .AllowAnyMethod()
