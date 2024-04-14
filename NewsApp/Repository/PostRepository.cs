@@ -1,9 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Hosting;
+﻿
+using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Running;
+using Microsoft.EntityFrameworkCore;
 using NewsApp.Data;
 using NewsApp.Helper;
 using NewsApp.Interface;
 using NewsApp.Models;
+using NewsApp.Repository;
 
 namespace NewsApp.Repository
 {
@@ -13,12 +16,16 @@ namespace NewsApp.Repository
         public PostRepository(DataContext context) { 
             _context = context;
         }
-        public async Task<Post> GetPostAsync(int id)
+
+        [Benchmark]
+        public async Task<Post?> GetPostAsync(int id)
         {
             return await _context.Posts.Where(p => p.Id == id)
                 .Include(a => a.Author)
+                .AsSplitQuery()
                 .Include(post => post.PostTags)
                     .ThenInclude(postTag => postTag.Tag)
+                .AsNoTracking()
                 .FirstOrDefaultAsync();
         }
 
@@ -28,6 +35,7 @@ namespace NewsApp.Repository
                 .Include(a => a.Author)
                 .Include(t => t.PostTags)
                     .ThenInclude(postTag => postTag.Tag)
+                .AsNoTracking()
                 .ToListAsync();
         }
 
@@ -57,7 +65,10 @@ namespace NewsApp.Repository
 
         public bool PostExists(int id)
         {
-            return _context.Posts.Where(p => p.Id == id).Any();
+            return _context.Posts
+                .Where(p => p.Id == id)
+                .AsNoTracking()
+                .Any();
         }
 
         async public Task<bool> SaveAsync()
@@ -92,6 +103,7 @@ namespace NewsApp.Repository
         async public Task<PostTag?> GetPostTagAsync(int postId, int tagId)
         {
             return await _context.PostTags.Where(p => p.TagId == tagId && p.PostId == postId)
+                .AsNoTracking()
                 .FirstOrDefaultAsync();
         }
 

@@ -1,8 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using NewsApp.Data;
 
-namespace NewsApp.Data
+/*
+namespace NewsApp.Extentions
 {
-   
+
     public static class MigrationExtensions
     {
         public static void ApplyMigrations(this IApplicationBuilder app)
@@ -16,3 +18,4 @@ namespace NewsApp.Data
         }
     }
 }
+*/

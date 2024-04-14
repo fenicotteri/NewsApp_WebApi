@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -7,19 +6,19 @@ using NewsApp.Data;
 using NewsApp.Interface;
 using NewsApp.Repository;
 using Swashbuckle.AspNetCore.Filters;
-using System.Text;
-using System.Text.Json.Serialization;
-using System.Text.Json;
-using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
-using Microsoft.AspNetCore.Hosting;
 using NewsApp.Helper;
 using Microsoft.AspNetCore.Identity;
 using NewsApp.Models;
-using Microsoft.Extensions.Options;
 using NewsApp.Services;
+using BenchmarkDotNet.Running;
+using Microsoft.CodeAnalysis.Elfie.Model.Strings;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using NewsApp.Repository.Cache;
 
 var builder = WebApplication.CreateBuilder(args);
+
+BenchmarkRunner.Run<PostRepository>();
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -27,18 +26,28 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers().AddNewtonsoftJson();
 builder.Services.AddAutoMapper(typeof(MappingProfiles));
 
-// сервисы DI
-builder.Services.AddScoped<IUserRepository, UserRepository>();
+// services DI
 builder.Services.AddScoped<IPostRepository, PostRepository>();
+builder.Services.Decorate<IPostRepository, CachedPostRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ITagRepository, TagRepository>();
 builder.Services.AddScoped<ICommentRepository, CommentRepository>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 
+
+builder.Services.AddMemoryCache();
+/*
+builder.Services.AddSession();
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+       .AddCookie();
+*/ 
+
+// swagger config
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSwaggerGen(option =>
 {
-    option.SwaggerDoc("v1", new OpenApiInfo { Title = "Demo API", Version = "v1" });
+    option.SwaggerDoc("v1", new OpenApiInfo { Title = "NewsSite API", Version = "v1" });
     option.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
     {
         Description = "Standard Authorization header using the Bearer scheme (\"bearer {token}\")",
@@ -84,8 +93,6 @@ builder.Services.AddIdentity<User, IdentityRole>(options =>
 // builder.Services.AddIdentityApiEndpoints<IdentityUser>()
 //    .AddEntityFrameworkStores<DataContext>();
 
-builder.Services.AddEndpointsApiExplorer();
-
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme =
@@ -114,17 +121,21 @@ builder.Services.AddAuthentication(options =>
 // Configure the HTTP request pipeline.
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+    //app.ApplyMigrations();
+}
+
 app.UseHttpsRedirection();
 
-app.UseSwagger();
-app.UseSwaggerUI();
-app.ApplyMigrations();
-
+// for working with front for exaple
 app.UseCors(x => x
          .AllowAnyMethod()
          .AllowAnyHeader()
          .AllowCredentials()
+         // .WithOrigins("https://localhost:5432")
          .SetIsOriginAllowed(origin => true));
 
 app.UseAuthentication();

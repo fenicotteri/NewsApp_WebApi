@@ -93,20 +93,24 @@ namespace NewsApp.Controllers
 
             var user = await _userManager.FindByEmailAsync(request.Email);
 
-            if (user == null)
+            if (user != null)
             {
-                return Unauthorized("Invalid Email");
-            }
+                var result = await _signInManager.CheckPasswordSignInAsync(user, request.Password, false);
 
-            var result = await _signInManager.CheckPasswordSignInAsync(user, request.Password, false);
-
-            return Ok(  
-                        new AuthOutputDto
-                        {
-                            User = _mapper.Map<PublicUserDto>(await _userManager.FindByEmailAsync(request.Email)),
-                            AccessToken = _tokenService.CreateToken(user)
-                        }
+                if (result.Succeeded)
+                {
+                    return Ok(
+                     new AuthOutputDto
+                     {
+                         User = _mapper.Map<PublicUserDto>(await _userManager.FindByEmailAsync(request.Email)),
+                         AccessToken = _tokenService.CreateToken(user)
+                     }
                     );
+                }
+            }
+          
+            return Unauthorized("Invalid Email");
+
         }
 
         /// <summary> Проверить токен </summary>
@@ -118,7 +122,9 @@ namespace NewsApp.Controllers
             var userEmail = User.FindFirstValue(ClaimTypes.Email);
 
             if (userEmail == null)
-            { return BadRequest(ModelState); }
+            { 
+                return BadRequest(ModelState); 
+            }
 
             var user = _mapper.Map<PublicUserDto>(await _userManager.FindByEmailAsync(userEmail));
 

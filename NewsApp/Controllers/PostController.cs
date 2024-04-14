@@ -32,12 +32,6 @@ namespace NewsApp.Controllers
 
         
         /// <summary> Получить список новостей </summary>
-        /// <param name="order">The order of sorting by creation date.</param>
-        /// <param name="search">Any text to search in post titles or content.</param>
-        /// <param name="author">Email, name, or surname of the author.</param>
-        /// <param name="offset">Number of posts to skip considering the sorting.</param>
-        /// <param name="limit">Number of posts to return considering the sorting.</param>
-        
         [HttpGet]
         [ProducesResponseType(200, Type = typeof(PostOutputWithAuthorDto))]
         [ProducesResponseType(400)]
