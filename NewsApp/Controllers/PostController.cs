@@ -37,14 +37,14 @@ namespace NewsApp.Controllers
         [ProducesResponseType(400)]
         public async Task<IActionResult> GetPostsAsync([FromQuery] QueryObject query)
         {
-            var result = _mapper.Map<PostOutputWithAuthorDto>(await _postRepository.GetPostsAsync(query));
+            var posts = _mapper.Map<PostOutputWithAuthorDto>(await _postRepository.GetPostsAsync(query));
 
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            return Ok(result);
+            return Ok(posts);
         }
 
 

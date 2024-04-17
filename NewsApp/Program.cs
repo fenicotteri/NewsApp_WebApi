@@ -18,8 +18,6 @@ using NewsApp.Repository.Cache;
 
 var builder = WebApplication.CreateBuilder(args);
 
-BenchmarkRunner.Run<PostRepository>();
-
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 

@@ -17,7 +17,6 @@ namespace NewsApp.Repository
             _context = context;
         }
 
-        [Benchmark]
         public async Task<Post?> GetPostAsync(int id)
         {
             return await _context.Posts.Where(p => p.Id == id)
