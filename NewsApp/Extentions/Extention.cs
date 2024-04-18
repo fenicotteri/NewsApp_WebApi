@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using NewsApp.Data;
 
-/*
+
 namespace NewsApp.Extentions
 {
 
@@ -18,4 +18,3 @@ namespace NewsApp.Extentions
         }
     }
 }
-*/
