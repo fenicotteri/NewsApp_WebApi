@@ -1,46 +1,65 @@
 ﻿using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using NewsApp.Helper;
 using NewsApp.Interface;
 using NewsApp.Models;
+using Newtonsoft.Json;
 
 namespace NewsApp.Repository.Cache
 {
     public class CachedPostRepository : IPostRepository
     {
         private readonly IPostRepository _decorated;
-        private readonly IMemoryCache _memoryCache;
+        private readonly IDistributedCache _distributedCache;
+        // private readonly IMemoryCache _memoryCache;
 
-        public CachedPostRepository(IPostRepository postRepository, IMemoryCache memoryCache)
+        public CachedPostRepository(IPostRepository postRepository, IDistributedCache distributedCache)
         {
             _decorated = postRepository;
-            _memoryCache = memoryCache;
+            _distributedCache = distributedCache;
+            // _memoryCache = memoryCache;
         }
 
-        public Task<bool> CreatePostAsync(string authorEmail, Post post)
-        {
-            return _decorated.CreatePostAsync(authorEmail, post);
-        }
+        public Task<bool> CreatePostAsync(string authorEmail, Post post) => _decorated.CreatePostAsync(authorEmail, post);
 
-        public Task<bool> CreateTagAsync(int postId, Tag tag)
-        {
-            return _decorated.CreateTagAsync(postId, tag);
-        }
+        public Task<bool> CreateTagAsync(int postId, Tag tag) => _decorated.CreateTagAsync(postId, tag);
 
-        public Task<bool> DeletePostAsync(Post post)
-        {
-            return _decorated.DeletePostAsync(post);
-        }
+        public Task<bool> DeletePostAsync(Post post) => _decorated.DeletePostAsync(post);
 
-        public Task<bool> DeletePostTagAsync(PostTag postTag)
-        {
-            return _decorated.DeletePostTagAsync(postTag);
-        }
+        public Task<bool> DeletePostTagAsync(PostTag postTag) => _decorated.DeletePostTagAsync(postTag);
 
-        public Task<Post?> GetPostAsync(int id)
+        public async Task<Post?> GetPostAsync(int id)
         {
             string key = $"post-{id}";
 
+            string? cachedPost = await _distributedCache.GetStringAsync(key);
+
+            Post? post;
+
+            if(string.IsNullOrEmpty(cachedPost))
+            {
+                post = await _decorated.GetPostAsync(id);   
+
+                if(post is null)
+                {
+                    return post;
+                }
+
+                var settings = new JsonSerializerSettings
+                {
+                    ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+                };
+
+                await _distributedCache.SetStringAsync(key, JsonConvert.SerializeObject(post, settings));
+
+                return post;
+            }
+
+            post = JsonConvert.DeserializeObject<Post>(cachedPost);
+
+            return post;
+            /*
             return _memoryCache.GetOrCreateAsync(
                 key,
                 entry =>
@@ -50,31 +69,17 @@ namespace NewsApp.Repository.Cache
                     return _decorated.GetPostAsync(id);
                 }
                 );
+            */
         }
 
-        public Task<List<Post>> GetPostsAsync(QueryObject query)
-        {
-            return _decorated.GetPostsAsync(query);
-        }
+        public Task<List<Post>> GetPostsAsync(QueryObject query) => _decorated.GetPostsAsync(query);
 
-        public Task<List<Post>> GetPostsWithTagsAsync()
-        {
-            return _decorated.GetPostsWithTagsAsync();
-        }
+        public Task<List<Post>> GetPostsWithTagsAsync() => _decorated.GetPostsWithTagsAsync();
 
-        public Task<PostTag?> GetPostTagAsync(int postId, int tagId)
-        {
-            return _decorated.GetPostTagAsync(postId, tagId);
-        }
+        public Task<PostTag?> GetPostTagAsync(int postId, int tagId) => _decorated.GetPostTagAsync(postId, tagId);
 
-        public bool PostExists(int id)
-        {
-            return _decorated.PostExists(id);
-        }
+        public bool PostExists(int id) => _decorated.PostExists(id);
 
-        public Task<bool> SaveAsync()
-        {
-            return _decorated.SaveAsync();
-        }
+        public Task<bool> SaveAsync()=> _decorated.SaveAsync();
     }
 }
