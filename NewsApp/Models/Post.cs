@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace NewsApp.Models
 {
@@ -14,6 +15,7 @@ namespace NewsApp.Models
         public DateTime UpdatedAt { get; set; } = DateTime.Now.ToUniversalTime();
 
         [ForeignKey("AuthorId")]
+        [JsonIgnore]
         public User? Author { get; set; }
         public ICollection<PostTag>? PostTags { get; set; }
     }
