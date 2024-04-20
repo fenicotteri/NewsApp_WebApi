@@ -4,12 +4,12 @@ namespace NewsApp.Dto
 {
     public class LoginDto
     {
-        /// <example>mag2003tag@test.ru</example>
+        /// <example>mag2003tag@gmail.com</example>
         [Required]
         [EmailAddress]
         public string Email { get; set; } = string.Empty;
 
-        /// <example> 12345 </example>
+        /// <example>>MagTag456?</example>
         [Required]
         [DataType(DataType.Password)]
         public string Password { get; set; } = string.Empty;

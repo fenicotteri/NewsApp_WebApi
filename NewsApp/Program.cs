@@ -15,6 +15,7 @@ using BenchmarkDotNet.Running;
 using Microsoft.CodeAnalysis.Elfie.Model.Strings;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using NewsApp.Repository.Cache;
+using NewsApp.Extentions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,9 +32,17 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ITagRepository, TagRepository>();
 builder.Services.AddScoped<ICommentRepository, CommentRepository>();
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddSingleton<ICacheService, CacheService>();
 
-
+// caching
 builder.Services.AddMemoryCache();
+
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = builder.Configuration.GetConnectionString("Redis");
+});
+
+
 /*
 builder.Services.AddSession();
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -119,12 +128,13 @@ builder.Services.AddAuthentication(options =>
 // Configure the HTTP request pipeline.
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
+if (app.Environment.IsProduction())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-    //app.ApplyMigrations();
+    app.ApplyMigrations();
 }
+
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 

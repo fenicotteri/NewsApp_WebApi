@@ -164,9 +164,9 @@ namespace NewsApp.Controllers
                 return NotFound();
             }
 
-            var postTag = await _postRepository.GetPostAsync(id);
+            var post = await _postRepository.GetPostAsync(id);
 
-            if (postTag.Author != null && postTag.Author.Email != userEmail)
+            if (post.Author != null && post.Author.Email != userEmail)
             {
                 ModelState.AddModelError("", "You are not an author");
                 return StatusCode(403, ModelState);

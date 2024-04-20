@@ -1,5 +1,6 @@
 ﻿using NewsApp.Models;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace NewsApp.Dto
 {
@@ -20,6 +21,7 @@ namespace NewsApp.Dto
         /// <example> 1 </example>
         public string? AuthorId { get; set; }
 
+        [JsonIgnore]
         public PublicUserDto? Author { get; set; }
         // public ICollection<TagOutputDto>? Tags { get; set; }
 
